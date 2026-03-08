@@ -75,7 +75,8 @@ const postAction = async <T>(
   const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      // Use a CORS-simple content type to avoid OPTIONS preflight on Apps Script web apps.
+      "Content-Type": "text/plain;charset=utf-8",
     },
     body,
   });
