@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { APPS_SCRIPT_DEPLOYMENT_ID } from './src/app/config/constants'
 
 export default defineConfig({
+  base: '/developer-report-/',
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
