@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Task Tracker</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .header-info h1 {
+      font-size: 24px;
+      color: #1a202c;
+      margin-bottom: 4px;
+    }
+    
+    .header-info p {
+      color: #718096;
+      font-size: 14px;
+    }
+    
+    .user-info {
+      text-align: right;
+    }
+    
+    .user-email {
+      font-size: 14px;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+    
+    .user-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .badge-admin {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .badge-developer {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a202c;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #2d3748;
+    }
+    
+    .btn-secondary:hover:not(:disabled) {
+      background: #cbd5e0;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .form-label.required::after {
+      content: ' *';
+      color: #f56565;
+    }
+    
+    .form-input,
+    .form-select,
+    .form-textarea {
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-input:disabled,
+    .form-select:disabled,
+    .form-textarea:disabled {
+      background: #f7fafc;
+      cursor: not-allowed;
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      background: #f7fafc;
+    }
+    
+    th {
+      padding: 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    td {
+      padding: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 14px;
+      color: #2d3748;
+    }
+    
+    tr:hover {
+      background: #f7fafc;
+    }
+    
+    .row-locked {
+      background: #fef5e7;
+    }
+    
+    .row-locked:hover {
+      background: #fdebd0;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .badge-high {
+      background: #fed7d7;
+      color: #c53030;
+    }
+    
+    .badge-medium {
+      background: #feebc8;
+      color: #c05621;
+    }
+    
+    .badge-low {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+    }
+    
+    .alert-info {
+      background: #bee3f8;
+      color: #2c5282;
+      border: 1px solid #90cdf4;
+    }
+    
+    .alert-warning {
+      background: #feebc8;
+      color: #7c2d12;
+      border: 1px solid #fbd38d;
+    }
+    
+    .alert-error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+    
+    .alert-success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #718096;
+    }
+    
+    .spinner {
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a202c;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #718096;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    
+    .modal-close:hover {
+      background: #e2e8f0;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 20px;
+      color: white;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #718096;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .lock-icon {
+      color: #f56565;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">📋</div>
+        <div class="header-info">
+          <h1>Developer Task Tracker</h1>
+          <p>Google Sheets Database</p>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="user-email" id="userEmail">Loading...</div>
+        <span class="user-badge" id="userBadge">Loading...</span>
+      </div>
+    </div>
+    
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+    
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-label">Total Tasks</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" id="statCompleted">0</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value" id="statInProgress">0</div>
+      </div>
+    </div>
+    
+    <!-- Main Card -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">My Tasks</h2>
+        <div>
+          <button class="btn btn-success" id="btnExportCSV" style="display: none; margin-right: 12px;">
+            📥 Export CSV
+          </button>
+          <button class="btn btn-primary" onclick="openCreateModal()">
+            ➕ Add Daily Task
+          </button>
+        </div>
+      </div>
+      
+      <div id="loadingContainer" class="loading">
+        <div class="spinner"></div>
+        <p>Loading tasks...</p>
+      </div>
+      
+      <div id="tasksContainer" style="display: none;">
+        <div class="table-container">
+          <table id="tasksTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Developer</th>
+                <th>Planned Tasks</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tasksTableBody">
+              <!-- Tasks will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📝</div>
+        <h3>No tasks yet</h3>
+        <p>Click "Add Daily Task" to create your first entry</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Create/Edit Task Modal -->
+  <div id="taskModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Add Daily Task</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      
+      <div id="modalAlert"></div>
+      
+      <form id="taskForm" onsubmit="handleSubmit(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label required">Date</label>
+            <input type="date" id="taskDate" class="form-input" required disabled>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Developer Name</label>
+            <input type="text" id="developerName" class="form-input" disabled>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label required">Morning Planned Tasks</label>
+          <textarea id="plannedTasks" class="form-textarea" required></textarea>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label required">Task Category</label>
+            <select id="category" class="form-select" required>
+              <option value="Dev">Dev</option>
+              <option value="Research">Research</option>
+              <option value="Test">Test</option>
+              <option value="Support">Support</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label required">Priority</label>
+            <select id="priority" class="form-select" required>
+              <option value="High">High</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label required">Estimated Time (Hours)</label>
+            <input type="number" id="estimatedTime" class="form-input" step="0.5" min="0" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label required">Actual Work Done (EOD)</label>
+          <textarea id="actualWork" class="form-textarea" required></textarea>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label required">Completion Status (%)</label>
+            <input type="number" id="completion" class="form-input" min="0" max="100" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label required">Task Level</label>
+            <select id="taskLevel" class="form-select" required>
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Blockers / Issues</label>
+          <textarea id="blockers" class="form-textarea"></textarea>
+        </div>
+        
+        <div id="adminSection" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Manager Remarks (Admin Only)</label>
+            <textarea id="managerRemarks" class="form-textarea"></textarea>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Submit Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    let currentUser = null;
+    let allTasks = [];
+    let editingRow = null;
+    
+    // Initialize
+    window.onload = function() {
+      loadUser();
+      loadTasks();
+    };
+    
+    // Load current user
+    function loadUser() {
+      google.script.run
+        .withSuccessHandler(function(user) {
+          currentUser = user;
+          document.getElementById('userEmail').textContent = user.email;
+          const badge = document.getElementById('userBadge');
+          badge.textContent = user.isAdmin ? 'Admin' : 'Developer';
+          badge.className = 'user-badge ' + (user.isAdmin ? 'badge-admin' : 'badge-developer');
+          
+          if (user.isAdmin) {
+            document.getElementById('btnExportCSV').style.display = 'inline-flex';
+            document.getElementById('btnExportCSV').onclick = exportCSV;
+          }
+        })
+        .withFailureHandler(showError)
+        .getCurrentUser();
+    }
+    
+    // Load tasks
+    function loadTasks() {
+      document.getElementById('loadingContainer').style.display = 'block';
+      document.getElementById('tasksContainer').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'none';
+      
+      google.script.run
+        .withSuccessHandler(function(tasks) {
+          allTasks = tasks;
+          renderTasks(tasks);
+          updateStats(tasks);
+          document.getElementById('loadingContainer').style.display = 'none';
+          
+          if (tasks.length === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+          } else {
+            document.getElementById('tasksContainer').style.display = 'block';
+          }
+        })
+        .withFailureHandler(function(error) {
+          showError(error);
+          document.getElementById('loadingContainer').style.display = 'none';
+        })
+        .getMyTasks();
+    }
+    
+    // Render tasks table
+    function renderTasks(tasks) {
+      const tbody = document.getElementById('tasksTableBody');
+      tbody.innerHTML = '';
+      
+      tasks.forEach(task => {
+        const row = document.createElement('tr');
+        const isLocked = !task.isToday && !currentUser.isAdmin;
+        if (isLocked) row.className = 'row-locked';
+        
+        row.innerHTML = `
+          <td>${formatDate(task.date)}</td>
+          <td>
+            <div>${task.developerName}</div>
+            <small style="color: #718096;">${task.developerEmail}</small>
+          </td>
+          <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${task.plannedTasks}
+          </td>
+          <td><span class="badge">${task.category}</span></td>
+          <td><span class="badge badge-${task.priority.toLowerCase()}">${task.priority}</span></td>
+          <td>${task.completion}%</td>
+          <td>
+            ${isLocked ? '<span class="lock-icon">🔒</span>' : ''}
+            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
+                    onclick="openEditModal(${task.row})"
+                    ${isLocked ? 'disabled' : ''}>
+              ${isLocked ? 'Locked' : 'Edit'}
+            </button>
+          </td>
+        `;
+        
+        tbody.appendChild(row);
+      });
+    }
+    
+    // Update stats
+    function updateStats(tasks) {
+      document.getElementById('statsGrid').style.display = 'grid';
+      document.getElementById('statTotal').textContent = tasks.length;
+      document.getElementById('statCompleted').textContent = tasks.filter(t => t.completion >= 100).length;
+      document.getElementById('statInProgress').textContent = tasks.filter(t => t.completion < 100).length;
+    }
+    
+    // Open create modal
+    function openCreateModal() {
+      editingRow = null;
+      document.getElementById('modalTitle').textContent = 'Add Daily Task';
+      document.getElementById('submitBtn').textContent = 'Submit Task';
+      document.getElementById('taskForm').reset();
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('taskDate').value = today;
+      document.getElementById('developerName').value = currentUser.name;
+      
+      if (currentUser.isAdmin) {
+        document.getElementById('adminSection').style.display = 'block';
+      }
+      
+      document.getElementById('taskModal').classList.add('active');
+    }
+    
+    // Open edit modal
+    function openEditModal(row) {
+      editingRow = row;
+      const task = allTasks.find(t => t.row === row);
+      
+      if (!task) {
+        showError('Task not found');
+        return;
+      }
+      
+      document.getElementById('modalTitle').textContent = 'Edit Task';
+      document.getElementById('submitBtn').textContent = 'Save Changes';
+      
+      document.getElementById('taskDate').value = formatDateInput(task.date);
+      document.getElementById('developerName').value = task.developerName;
+      document.getElementById('plannedTasks').value = task.plannedTasks;
+      document.getElementById('category').value = task.category;
+      document.getElementById('priority').value = task.priority;
+      document.getElementById('estimatedTime').value = task.estimatedTime;
+      document.getElementById('actualWork').value = task.actualWork;
+      document.getElementById('completion').value = task.completion;
+      document.getElementById('taskLevel').value = task.taskLevel;
+      document.getElementById('blockers').value = task.blockers;
+      
+      if (currentUser.isAdmin) {
+        document.getElementById('adminSection').style.display = 'block';
+        document.getElementById('managerRemarks').value = task.managerRemarks;
+      }
+      
+      document.getElementById('taskModal').classList.add('active');
+    }
+    
+    // Close modal
+    function closeModal() {
+      document.getElementById('taskModal').classList.remove('active');
+      document.getElementById('modalAlert').innerHTML = '';
+    }
+    
+    // Handle form submit
+    function handleSubmit(event) {
+      event.preventDefault();
+      
+      const taskData = {
+        developerName: currentUser.name,
+        plannedTasks: document.getElementById('plannedTasks').value,
+        category: document.getElementById('category').value,
+        priority: document.getElementById('priority').value,
+        estimatedTime: parseFloat(document.getElementById('estimatedTime').value),
+        actualWork: document.getElementById('actualWork').value,
+        completion: parseInt(document.getElementById('completion').value),
+        taskLevel: document.getElementById('taskLevel').value,
+        blockers: document.getElementById('blockers').value,
+        date: document.getElementById('taskDate').value
+      };
+      
+      if (currentUser.isAdmin) {
+        taskData.managerRemarks = document.getElementById('managerRemarks').value;
+      }
+      
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').textContent = 'Saving...';
+      
+      if (editingRow) {
+        // Update existing task
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showSuccess('Task updated successfully');
+              closeModal();
+              loadTasks();
+            } else {
+              showModalError(result.message);
+              document.getElementById('submitBtn').disabled = false;
+              document.getElementById('submitBtn').textContent = 'Save Changes';
+            }
+          })
+          .withFailureHandler(function(error) {
+            showModalError(error);
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = 'Save Changes';
+          })
+          .updateTask(editingRow, taskData);
+      } else {
+        // Create new task
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showSuccess('Task created successfully');
+              closeModal();
+              loadTasks();
+            } else {
+              showModalError(result.message);
+              document.getElementById('submitBtn').disabled = false;
+              document.getElementById('submitBtn').textContent = 'Submit Task';
+            }
+          })
+          .withFailureHandler(function(error) {
+            showModalError(error);
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = 'Submit Task';
+          })
+          .createTask(taskData);
+      }
+    }
+    
+    // Export CSV
+    function exportCSV() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            const blob = new Blob([result.csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'developer-tasks-' + new Date().toISOString().split('T')[0] + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            showSuccess('CSV exported successfully');
+          } else {
+            showError(result.message);
+          }
+        })
+        .withFailureHandler(showError)
+        .exportToCSV();
+    }
+    
+    // Alert functions
+    function showAlert(message, type) {
+      const container = document.getElementById('alertContainer');
+      const alert = document.createElement('div');
+      alert.className = 'alert alert-' + type;
+      alert.textContent = message;
+      container.appendChild(alert);
+      
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+    
+    function showSuccess(message) {
+      showAlert(message, 'success');
+    }
+    
+    function showError(message) {
+      showAlert(message, 'error');
+    }
+    
+    function showModalError(message) {
+      const modalAlert = document.getElementById('modalAlert');
+      modalAlert.innerHTML = '<div class="alert alert-error">' + message + '</div>';
+    }
+    
+    // Utility functions
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    }
+    
+    function formatDateInput(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    }
+  </script>
+</body>
+</html>
