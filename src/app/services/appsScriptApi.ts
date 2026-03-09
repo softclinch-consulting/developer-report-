@@ -183,13 +183,18 @@ export const updateTask = async (
 
 export const deleteTask = async (user: User, recordId: string): Promise<void> => {
 
-  const res = await fetch(API_BASE_URL, {
+  const params = new URLSearchParams({
+    action: "deleteTask",
+    id: recordId,
+    userEmail: user.email
+  });
+
+  const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "text/plain;charset=utf-8"
     },
     body: JSON.stringify({
-      action: "deleteTask",
       id: recordId,
       userEmail: user.email
     })
