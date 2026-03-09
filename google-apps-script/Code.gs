@@ -122,11 +122,30 @@ GET API
 *************************************************/
 
 function doGet(e) {
-
-  const action = e.parameter.action;
+  const params = (e && e.parameter) ? e.parameter : {};
+  const action = params.action;
 
   if (action === "listTasks") {
-    return jsonResponse(listTasks(e.parameter.userEmail, e.parameter.userRole));
+    return jsonResponse(listTasks(params.userEmail, params.userRole));
+  }
+
+  if (action === "report") {
+    return jsonResponse(productivityReport());
+  }
+
+  // Fallback for Apps Script redirect flows where delete can arrive as GET.
+  if (action === "deleteTask") {
+    return jsonResponse(deleteTask({
+      id: params.id,
+      userEmail: params.userEmail
+    }));
+  }
+
+  if (action === "version") {
+    return jsonResponse({
+      success: true,
+      version: "2026-03-09-v2"
+    });
   }
 
   return jsonResponse({
@@ -145,7 +164,8 @@ function doPost(e) {
   try {
 
     const data = parseRequestData(e);
-    const action = data.action;
+    const params = (e && e.parameter) ? e.parameter : {};
+    const action = data.action || params.action;
 
     if (action === "createTask") {
       return jsonResponse(createTask(data));
@@ -156,7 +176,10 @@ function doPost(e) {
     }
 
     if (action === "deleteTask") {
-      return jsonResponse(deleteTask(data));
+      return jsonResponse(deleteTask({
+        id: data.id || params.id,
+        userEmail: data.userEmail || params.userEmail
+      }));
     }
 
     return jsonResponse({
@@ -382,5 +405,41 @@ function deleteTask(data) {
   return {
     success: false,
     message: "Task not found"
+  };
+}
+
+/*************************************************
+PRODUCTIVITY REPORT
+*************************************************/
+
+function productivityReport() {
+  const sheet = getSheet();
+  const rows = sheet.getDataRange().getValues();
+
+  if (rows.length <= 1) {
+    return { success: true, data: {} };
+  }
+
+  const report = {};
+
+  for (let i = 1; i < rows.length; i++) {
+    const developerName = String(rows[i][3] || "Unknown");
+
+    if (!report[developerName]) {
+      report[developerName] = {
+        totalTasks: 0,
+        completedTasks: 0
+      };
+    }
+
+    report[developerName].totalTasks++;
+    if (toNumber(rows[i][9], 0) >= 100) {
+      report[developerName].completedTasks++;
+    }
+  }
+
+  return {
+    success: true,
+    data: report
   };
 }
