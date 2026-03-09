@@ -107,8 +107,12 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
       `Delete task for ${record.assignedEmail} on ${formatDateForUi(record.date)}? This action cannot be undone.`
     );
     if (!confirmed) return;
-    await deleteTask(user, record.id);
-    await loadRecords();
+    try {
+      await deleteTask(user, record.id);
+      await loadRecords();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to delete task");
+    }
   };
 
   // Group records by assigned email

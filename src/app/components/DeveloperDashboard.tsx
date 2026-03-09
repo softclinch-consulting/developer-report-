@@ -62,8 +62,12 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
     }
     const confirmed = window.confirm('Delete this task? This action cannot be undone.');
     if (!confirmed) return;
-    await deleteTask(user, record.id);
-    await loadRecords();
+    try {
+      await deleteTask(user, record.id);
+      await loadRecords();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to delete task');
+    }
   };
 
   const getPriorityColor = (priority: string) => {
