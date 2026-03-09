@@ -188,14 +188,7 @@ export const deleteTask = async (user: User, recordId: string): Promise<void> =>
     userEmail: user.email,
   });
 
-  const res = await fetch(`${API_BASE_URL}?${params.toString()}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    // Send url-encoded payload so Apps Script can parse action reliably after redirects.
-    body: params.toString(),
-  });
+  const res = await fetch(`${API_BASE_URL}?${params.toString()}`);
 
   const parsed = await parseResponse<void>(res);
   if (!parsed.success) {
