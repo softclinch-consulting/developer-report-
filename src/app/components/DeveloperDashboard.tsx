@@ -28,6 +28,7 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
   const [records, setRecords] = useState<Record[]>([]);
   const [myRecords, setMyRecords] = useState<Record[]>([]);
   const [deletingTaskId, setDeletingTaskId] = useState('');
+  const [lastSubmittedTask, setLastSubmittedTask] = useState<Record | null>(null);
 
   useEffect(() => {
     loadRecords().catch((error) => {
@@ -43,7 +44,8 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
   };
 
   const handleCreateTask = async (data: TaskFormData) => {
-    await createTask(user, data);
+    const created = await createTask(user, data);
+    setLastSubmittedTask(created);
     await loadRecords();
   };
 
@@ -164,6 +166,20 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
             </div>
           </CardHeader>
           <CardContent>
+            {lastSubmittedTask && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4">
+                <p className="text-sm font-semibold text-green-800">Last submitted task preview</p>
+                <div className="mt-2 grid grid-cols-1 gap-1 text-sm text-green-900 sm:grid-cols-2">
+                  <p><strong>Date:</strong> {new Date(lastSubmittedTask.date).toLocaleDateString()}</p>
+                  <p><strong>Category:</strong> {lastSubmittedTask.taskCategory}</p>
+                  <p><strong>Priority:</strong> {lastSubmittedTask.priority}</p>
+                  <p><strong>Status:</strong> {lastSubmittedTask.completionStatus}%</p>
+                  <p className="sm:col-span-2"><strong>Planned:</strong> {lastSubmittedTask.morningPlannedTasks}</p>
+                  <p className="sm:col-span-2"><strong>Blocker Owner:</strong> {lastSubmittedTask.blockerOwner || '-'}</p>
+                </div>
+              </div>
+            )}
+
             {myRecords.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 mb-4">No tasks found</p>
