@@ -29,13 +29,31 @@ interface AdminDashboardProps {
 export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const toDateKey = (value: string): string => {
     const raw = String(value || '').trim();
+    if (!raw) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+    const usMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (usMatch) {
+      const mm = String(Number(usMatch[1])).padStart(2, '0');
+      const dd = String(Number(usMatch[2])).padStart(2, '0');
+      const yyyy = usMatch[3];
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
     const dt = new Date(raw);
     if (Number.isNaN(dt.getTime())) return '';
     const y = dt.getFullYear();
     const m = String(dt.getMonth() + 1).padStart(2, '0');
     const d = String(dt.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  };
+
+  const formatDateForUi = (value: string): string => {
+    const key = toDateKey(value);
+    if (!key) return String(value || '-');
+    const dt = new Date(`${key}T00:00:00`);
+    if (Number.isNaN(dt.getTime())) return key;
+    return dt.toLocaleDateString();
   };
 
   const [records, setRecords] = useState<TaskRecord[]>([]);
@@ -51,7 +69,13 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
 
   const loadRecords = async () => {
     const allRecords = await fetchTasks(user);
-    setRecords(allRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    setRecords(
+      allRecords.sort((a, b) => {
+        const aKey = toDateKey(a.date);
+        const bKey = toDateKey(b.date);
+        return bKey.localeCompare(aKey);
+      })
+    );
   };
 
   const handleEditTask = async (updatedRecord: TaskRecord) => {
@@ -80,7 +104,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
 
   const handleDeleteTask = async (record: TaskRecord) => {
     const confirmed = window.confirm(
-      `Delete task for ${record.assignedEmail} on ${new Date(record.date).toLocaleDateString()}? This action cannot be undone.`
+      `Delete task for ${record.assignedEmail} on ${formatDateForUi(record.date)}? This action cannot be undone.`
     );
     if (!confirmed) return;
     await deleteTask(user, record.id);
@@ -97,8 +121,10 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   }, {} as { [key: string]: TaskRecord[] });
 
   const filteredRecords = records.filter((r) => {
-    const emailMatch = !filterEmail || r.assignedEmail.toLowerCase().includes(filterEmail.toLowerCase());
-    const nameMatch = !filterName || r.developerName.toLowerCase().includes(filterName.toLowerCase());
+    const email = String(r.assignedEmail || '').toLowerCase();
+    const name = String(r.developerName || '').toLowerCase();
+    const emailMatch = !filterEmail || email.includes(filterEmail.toLowerCase());
+    const nameMatch = !filterName || name.includes(filterName.toLowerCase());
     const dateMatch = !filterDate || toDateKey(r.date) === filterDate;
     return emailMatch && nameMatch && dateMatch;
   });
@@ -259,7 +285,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                     {filteredRecords.map((record) => (
                       <TableRow key={record.id}>
                         <TableCell className="font-medium">
-                          {new Date(record.date).toLocaleDateString()}
+                          {formatDateForUi(record.date)}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
