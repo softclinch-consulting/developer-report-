@@ -27,6 +27,7 @@ interface DeveloperDashboardProps {
 export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) {
   const [records, setRecords] = useState<Record[]>([]);
   const [myRecords, setMyRecords] = useState<Record[]>([]);
+  const [deletingTaskId, setDeletingTaskId] = useState('');
 
   useEffect(() => {
     loadRecords().catch((error) => {
@@ -56,6 +57,7 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
   };
 
   const handleDeleteTask = async (record: Record) => {
+    if (deletingTaskId) return;
     if (!canEditRecord(record, user.email, false)) {
       alert('You can delete only your own tasks created today. Previous-day tasks are locked.');
       return;
@@ -63,10 +65,13 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
     const confirmed = window.confirm('Delete this task? This action cannot be undone.');
     if (!confirmed) return;
     try {
+      setDeletingTaskId(record.id);
       await deleteTask(user, record.id);
       await loadRecords();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Failed to delete task');
+    } finally {
+      setDeletingTaskId('');
     }
   };
 
@@ -222,10 +227,10 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                               variant="destructive"
                               size="sm"
                               onClick={() => handleDeleteTask(record)}
-                              disabled={!canEditRecord(record, user.email, false)}
+                              disabled={!canEditRecord(record, user.email, false) || Boolean(deletingTaskId)}
                             >
                               <Trash2 className="w-3 h-3 mr-1" />
-                              Delete
+                              {deletingTaskId === record.id ? 'Deleting...' : 'Delete'}
                             </Button>
                           </div>
                         </TableCell>

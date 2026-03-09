@@ -60,6 +60,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [filterEmail, setFilterEmail] = useState('');
   const [filterName, setFilterName] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [deletingTaskId, setDeletingTaskId] = useState('');
 
   useEffect(() => {
     loadRecords().catch((error) => {
@@ -103,15 +104,19 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   };
 
   const handleDeleteTask = async (record: TaskRecord) => {
+    if (deletingTaskId) return;
     const confirmed = window.confirm(
       `Delete task for ${record.assignedEmail} on ${formatDateForUi(record.date)}? This action cannot be undone.`
     );
     if (!confirmed) return;
     try {
+      setDeletingTaskId(record.id);
       await deleteTask(user, record.id);
       await loadRecords();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to delete task");
+    } finally {
+      setDeletingTaskId('');
     }
   };
 
@@ -339,9 +344,10 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                               variant="destructive"
                               size="sm"
                               onClick={() => handleDeleteTask(record)}
+                              disabled={Boolean(deletingTaskId)}
                             >
                               <Trash2 className="w-3 h-3 mr-1" />
-                              Delete
+                              {deletingTaskId === record.id ? 'Deleting...' : 'Delete'}
                             </Button>
                           </div>
                         </TableCell>
