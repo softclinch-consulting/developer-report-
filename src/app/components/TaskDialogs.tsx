@@ -26,10 +26,12 @@ export interface TaskFormData {
   taskCategory: 'Dev' | 'Research' | 'Test' | 'Support';
   priority: 'High' | 'Medium' | 'Low';
   estimatedTime: number;
+  estimatedDays: number;
   actualWorkDone: string;
   completionStatus: number;
   taskLevel: 'Easy' | 'Medium' | 'Hard';
   blockers: string;
+  blockerOwner: string;
 }
 
 export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDialogProps) {
@@ -42,10 +44,12 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
     taskCategory: 'Dev',
     priority: 'Medium',
     estimatedTime: 0,
+    estimatedDays: 1,
     actualWorkDone: '',
     completionStatus: 0,
     taskLevel: 'Medium',
     blockers: '',
+    blockerOwner: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,10 +64,12 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
         taskCategory: 'Dev',
         priority: 'Medium',
         estimatedTime: 0,
+        estimatedDays: 1,
         actualWorkDone: '',
         completionStatus: 0,
         taskLevel: 'Medium',
         blockers: '',
+        blockerOwner: '',
       });
       setOpen(false);
     } catch (error) {
@@ -130,7 +136,7 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="taskCategory">Task Category *</Label>
               <select
@@ -171,6 +177,19 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
                 step="0.5"
                 value={formData.estimatedTime}
                 onChange={(e) => setFormData({ ...formData, estimatedTime: parseFloat(e.target.value) || 0 })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="estimatedDays">Estimated Days *</Label>
+              <Input
+                id="estimatedDays"
+                type="number"
+                min="1"
+                step="1"
+                value={formData.estimatedDays}
+                onChange={(e) => setFormData({ ...formData, estimatedDays: parseInt(e.target.value, 10) || 1 })}
                 required
               />
             </div>
@@ -226,6 +245,16 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
               onChange={(e) => setFormData({ ...formData, blockers: e.target.value })}
               placeholder="Any blockers or issues you faced?"
               rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="blockerOwner">Assigned To Resolve Blocker / Error</Label>
+            <Input
+              id="blockerOwner"
+              value={formData.blockerOwner}
+              onChange={(e) => setFormData({ ...formData, blockerOwner: e.target.value })}
+              placeholder="Enter assignee name or email"
             />
           </div>
 
@@ -342,7 +371,7 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-taskCategory">Task Category *</Label>
               <select
@@ -385,6 +414,21 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
                 step="0.5"
                 value={formData.estimatedTime}
                 onChange={(e) => setFormData({ ...formData, estimatedTime: parseFloat(e.target.value) || 0 })}
+                required
+                disabled={isLocked && !isAdmin}
+                className={isLocked && !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-estimatedDays">Estimated Days *</Label>
+              <Input
+                id="edit-estimatedDays"
+                type="number"
+                min="1"
+                step="1"
+                value={formData.estimatedDays}
+                onChange={(e) => setFormData({ ...formData, estimatedDays: parseInt(e.target.value, 10) || 1 })}
                 required
                 disabled={isLocked && !isAdmin}
                 className={isLocked && !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}
@@ -445,6 +489,18 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
               value={formData.blockers}
               onChange={(e) => setFormData({ ...formData, blockers: e.target.value })}
               rows={2}
+              disabled={isLocked && !isAdmin}
+              className={isLocked && !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-blockerOwner">Assigned To Resolve Blocker / Error</Label>
+            <Input
+              id="edit-blockerOwner"
+              value={formData.blockerOwner}
+              onChange={(e) => setFormData({ ...formData, blockerOwner: e.target.value })}
+              placeholder="Enter assignee name or email"
               disabled={isLocked && !isAdmin}
               className={isLocked && !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}
             />

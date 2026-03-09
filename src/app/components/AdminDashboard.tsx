@@ -5,7 +5,7 @@ import {
   downloadCSV,
 } from '../utils/recordUtils';
 import { EditTaskDialog } from './TaskDialogs';
-import { fetchTasks, updateTask } from '../services/appsScriptApi';
+import { deleteTask, fetchTasks, updateTask } from '../services/appsScriptApi';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -18,7 +18,7 @@ import {
 } from './ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { LogOut, Download, Users, ListTodo, TrendingUp } from 'lucide-react';
+import { LogOut, Download, Users, ListTodo, TrendingUp, Trash2 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface AdminDashboardProps {
@@ -66,6 +66,15 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
         record.id === recordId ? { ...record, managerRemarks: remark } : record
       )
     );
+  };
+
+  const handleDeleteTask = async (record: TaskRecord) => {
+    const confirmed = window.confirm(
+      `Delete task for ${record.assignedEmail} on ${new Date(record.date).toLocaleDateString()}? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+    await deleteTask(user, record.id);
+    await loadRecords();
   };
 
   // Group records by assigned email
@@ -210,7 +219,9 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                       <TableHead>Planned Tasks</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Priority</TableHead>
+                      <TableHead>Est. Days</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Blocker Owner</TableHead>
                       <TableHead>Manager Remarks</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -240,8 +251,12 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                             {record.priority}
                           </Badge>
                         </TableCell>
+                        <TableCell>{record.estimatedDays}</TableCell>
                         <TableCell className={getCompletionColor(record.completionStatus)}>
                           {record.completionStatus}%
+                        </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="truncate text-sm">{record.blockerOwner || '-'}</div>
                         </TableCell>
                         <TableCell className="max-w-xs">
                           <Input
@@ -253,13 +268,23 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          <EditTaskDialog
-                            record={record}
-                            onEditTask={handleEditTask}
-                            canEdit={canEditRecord(record, user.email, true)}
-                            isAdmin={true}
-                            userEmail={user.email}
-                          />
+                          <div className="flex justify-end gap-2">
+                            <EditTaskDialog
+                              record={record}
+                              onEditTask={handleEditTask}
+                              canEdit={canEditRecord(record, user.email, true)}
+                              isAdmin={true}
+                              userEmail={user.email}
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteTask(record)}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

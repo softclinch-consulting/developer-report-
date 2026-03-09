@@ -4,7 +4,7 @@ import {
   canEditRecord,
 } from '../utils/recordUtils';
 import { CreateTaskDialog, EditTaskDialog, TaskFormData } from './TaskDialogs';
-import { createTask, fetchTasks, updateTask } from '../services/appsScriptApi';
+import { createTask, deleteTask, fetchTasks, updateTask } from '../services/appsScriptApi';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {
@@ -16,7 +16,7 @@ import {
   TableRow,
 } from './ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { LogOut, CheckCircle2, Clock } from 'lucide-react';
+import { LogOut, CheckCircle2, Clock, Trash2 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface DeveloperDashboardProps {
@@ -52,6 +52,17 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
       return;
     }
     await updateTask(user, updatedRecord);
+    await loadRecords();
+  };
+
+  const handleDeleteTask = async (record: Record) => {
+    if (!canEditRecord(record, user.email, false)) {
+      alert('You can delete only your own tasks created today. Previous-day tasks are locked.');
+      return;
+    }
+    const confirmed = window.confirm('Delete this task? This action cannot be undone.');
+    if (!confirmed) return;
+    await deleteTask(user, record.id);
     await loadRecords();
   };
 
@@ -160,8 +171,10 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                       <TableHead>Planned Tasks</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Priority</TableHead>
+                      <TableHead>Est. Days</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Level</TableHead>
+                      <TableHead>Blocker Owner</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -182,20 +195,35 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                             {record.priority}
                           </Badge>
                         </TableCell>
+                        <TableCell>{record.estimatedDays}</TableCell>
                         <TableCell className={getCompletionColor(record.completionStatus)}>
                           {record.completionStatus}%
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary">{record.taskLevel}</Badge>
                         </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="truncate">{record.blockerOwner || '-'}</div>
+                        </TableCell>
                         <TableCell className="text-right">
-                          <EditTaskDialog
-                            record={record}
-                            onEditTask={handleEditTask}
-                            canEdit={record.assignedEmail === user.email}
-                            isAdmin={false}
-                            userEmail={user.email}
-                          />
+                          <div className="flex justify-end gap-2">
+                            <EditTaskDialog
+                              record={record}
+                              onEditTask={handleEditTask}
+                              canEdit={record.assignedEmail === user.email}
+                              isAdmin={false}
+                              userEmail={user.email}
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteTask(record)}
+                              disabled={!canEditRecord(record, user.email, false)}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

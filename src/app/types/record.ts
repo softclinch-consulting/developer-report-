@@ -7,10 +7,12 @@ export interface Record {
   taskCategory: 'Dev' | 'Research' | 'Test' | 'Support';
   priority: 'High' | 'Medium' | 'Low';
   estimatedTime: number;
+  estimatedDays: number;
   actualWorkDone: string;
   completionStatus: number;
   taskLevel: 'Easy' | 'Medium' | 'Hard';
   blockers: string;
+  blockerOwner: string;
   managerRemarks: string;
   createdTimestamp: string;
 }

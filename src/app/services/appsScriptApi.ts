@@ -12,10 +12,12 @@ type ApiTask = {
   category: "Dev" | "Research" | "Test" | "Support";
   priority: "High" | "Medium" | "Low";
   estimatedTime: number;
+  estimatedDays?: number;
   actualWork: string;
   completion: number;
   taskLevel: "Easy" | "Medium" | "Hard";
   blockers: string;
+  blockerOwner?: string;
   managerRemarks: string;
   createdTimestamp: string;
 };
@@ -40,10 +42,12 @@ const asRecord = (task: ApiTask): TaskRecord => ({
   taskCategory: task.category,
   priority: task.priority,
   estimatedTime: Number(task.estimatedTime || 0),
+  estimatedDays: Number(task.estimatedDays || 1),
   actualWorkDone: task.actualWork || "",
   completionStatus: Number(task.completion || 0),
   taskLevel: task.taskLevel,
   blockers: task.blockers || "",
+  blockerOwner: task.blockerOwner || "",
   managerRemarks: task.managerRemarks || "",
   createdTimestamp: task.createdTimestamp || new Date().toISOString(),
 });
@@ -118,10 +122,12 @@ export const createTask = async (
       category: data.taskCategory,
       priority: data.priority,
       estimatedTime: data.estimatedTime,
+      estimatedDays: data.estimatedDays,
       actualWork: data.actualWorkDone,
       completion: data.completionStatus,
       taskLevel: data.taskLevel,
       blockers: data.blockers,
+      blockerOwner: data.blockerOwner,
     },
   }, false);
   if (!task) {
@@ -135,10 +141,12 @@ export const createTask = async (
       taskCategory: data.taskCategory,
       priority: data.priority,
       estimatedTime: data.estimatedTime,
+      estimatedDays: data.estimatedDays,
       actualWorkDone: data.actualWorkDone,
       completionStatus: data.completionStatus,
       taskLevel: data.taskLevel,
       blockers: data.blockers,
+      blockerOwner: data.blockerOwner,
       managerRemarks: "",
       createdTimestamp: new Date().toISOString(),
     };
@@ -158,10 +166,12 @@ export const updateTask = async (
       category: record.taskCategory,
       priority: record.priority,
       estimatedTime: record.estimatedTime,
+      estimatedDays: record.estimatedDays,
       actualWork: record.actualWorkDone,
       completion: record.completionStatus,
       taskLevel: record.taskLevel,
       blockers: record.blockers,
+      blockerOwner: record.blockerOwner,
       managerRemarks: record.managerRemarks,
     },
   }, false);
@@ -169,4 +179,14 @@ export const updateTask = async (
     return record;
   }
   return asRecord(task);
+};
+
+export const deleteTask = async (
+  user: User,
+  recordId: string
+): Promise<void> => {
+  await postAction("deleteTask", {
+    userEmail: user.email,
+    id: recordId,
+  }, false);
 };
