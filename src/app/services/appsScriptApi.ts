@@ -185,8 +185,17 @@ export const deleteTask = async (
   user: User,
   recordId: string
 ): Promise<void> => {
-  await postAction("deleteTask", {
-    userEmail: user.email,
+  const body = new URLSearchParams({
+    action: "deleteTask",
     id: recordId,
-  }, false);
+    userEmail: user.email,
+  });
+  const res = await fetch(API_BASE_URL, {
+    method: "POST",
+    body,
+  });
+  const parsed = await parseResponse<unknown>(res);
+  if (!parsed.success) {
+    throw new Error(parsed.message || "Failed to delete task");
+  }
 };

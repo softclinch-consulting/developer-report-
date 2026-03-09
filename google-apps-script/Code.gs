@@ -53,6 +53,36 @@ function jsonResponse(data) {
 
 }
 
+function formatDateKey(value) {
+  const dt = new Date(value);
+  if (isNaN(dt.getTime())) return "";
+  const y = dt.getFullYear();
+  const m = ("0" + (dt.getMonth() + 1)).slice(-2);
+  const d = ("0" + dt.getDate()).slice(-2);
+  return y + "-" + m + "-" + d;
+}
+
+function parseRequestData(e) {
+  const raw = e && e.postData && e.postData.contents ? String(e.postData.contents) : "";
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw);
+  } catch (jsonErr) {
+    // Support x-www-form-urlencoded payloads like action=deleteTask&id=...
+    const out = {};
+    const pairs = raw.split("&");
+    for (let i = 0; i < pairs.length; i++) {
+      if (!pairs[i]) continue;
+      const kv = pairs[i].split("=");
+      const key = decodeURIComponent((kv[0] || "").replace(/\+/g, " "));
+      const val = decodeURIComponent((kv.slice(1).join("=") || "").replace(/\+/g, " "));
+      out[key] = val;
+    }
+    return out;
+  }
+}
+
 function normalize(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -114,7 +144,7 @@ function doPost(e) {
 
   try {
 
-    const data = JSON.parse(e.postData.contents);
+    const data = parseRequestData(e);
     const action = data.action;
 
     if (action === "createTask") {
@@ -123,6 +153,10 @@ function doPost(e) {
 
     if (action === "updateTask") {
       return jsonResponse(updateTask(data));
+    }
+
+    if (action === "deleteTask") {
+      return jsonResponse(deleteTask(data));
     }
 
     return jsonResponse({
@@ -295,4 +329,58 @@ function updateTask(data) {
     message: "Task not found"
   };
 
+}
+
+/*************************************************
+DELETE TASK
+*************************************************/
+
+function deleteTask(data) {
+  const sheet = getSheet();
+  const id = String(data.id || "");
+  const userEmail = normalize(data.userEmail);
+
+  if (!id) {
+    return {
+      success: false,
+      message: "Task id is required"
+    };
+  }
+
+  const rows = sheet.getDataRange().getValues();
+  const todayKey = formatDateKey(new Date());
+  const isAdmin = userEmail === normalize(ADMIN_EMAIL);
+
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) !== id) continue;
+
+    const ownerEmail = normalize(rows[i][2]);
+    const taskDateKey = formatDateKey(rows[i][1]);
+
+    if (!isAdmin) {
+      if (!userEmail || ownerEmail !== userEmail) {
+        return {
+          success: false,
+          message: "You can delete only your own tasks"
+        };
+      }
+      if (taskDateKey !== todayKey) {
+        return {
+          success: false,
+          message: "You can delete only today's tasks"
+        };
+      }
+    }
+
+    sheet.deleteRow(i + 1);
+    return {
+      success: true,
+      message: "Task deleted"
+    };
+  }
+
+  return {
+    success: false,
+    message: "Task not found"
+  };
 }
