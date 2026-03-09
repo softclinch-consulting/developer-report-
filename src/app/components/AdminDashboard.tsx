@@ -4,7 +4,7 @@ import {
   canEditRecord,
   downloadCSV,
 } from '../utils/recordUtils';
-import { EditTaskDialog } from './TaskDialogs';
+import { EditTaskDialog, PreviewTaskDialog } from './TaskDialogs';
 import { deleteTask, fetchTasks, updateTask } from '../services/appsScriptApi';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -337,6 +337,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <PreviewTaskDialog record={record} />
                             <EditTaskDialog
                               record={record}
                               onEditTask={handleEditTask}

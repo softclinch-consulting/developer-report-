@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog';
-import { Plus, Lock, AlertCircle } from 'lucide-react';
+import { Plus, Lock, AlertCircle, Eye } from 'lucide-react';
 import { getTodayDate, isRecordLocked } from '../utils/recordUtils';
 
 interface CreateTaskDialogProps {
@@ -278,6 +278,68 @@ interface EditTaskDialogProps {
   canEdit: boolean;
   isAdmin: boolean;
   userEmail: string;
+}
+
+interface PreviewTaskDialogProps {
+  record: Record;
+}
+
+export function PreviewTaskDialog({ record }: PreviewTaskDialogProps) {
+  const dateText = new Date(record.date).toString() === 'Invalid Date'
+    ? String(record.date || '-')
+    : new Date(record.date).toLocaleDateString();
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Eye className="w-3 h-3 mr-1" />
+          Preview
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Task Preview</DialogTitle>
+          <DialogDescription>Read-only details of this task.</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <p><strong>Date:</strong> {dateText}</p>
+            <p><strong>Developer:</strong> {record.developerName}</p>
+            <p><strong>Email:</strong> {record.assignedEmail}</p>
+            <p><strong>Category:</strong> {record.taskCategory}</p>
+            <p><strong>Priority:</strong> {record.priority}</p>
+            <p><strong>Task Level:</strong> {record.taskLevel}</p>
+            <p><strong>Estimated Time:</strong> {record.estimatedTime}h</p>
+            <p><strong>Estimated Days:</strong> {record.estimatedDays}</p>
+            <p><strong>Completion:</strong> {record.completionStatus}%</p>
+            <p><strong>Blocker Owner:</strong> {record.blockerOwner || '-'}</p>
+          </div>
+
+          <div>
+            <p className="font-semibold">Planned Tasks</p>
+            <p className="mt-1 whitespace-pre-wrap">{record.morningPlannedTasks || '-'}</p>
+          </div>
+
+          <div>
+            <p className="font-semibold">Actual Work Done</p>
+            <p className="mt-1 whitespace-pre-wrap">{record.actualWorkDone || '-'}</p>
+          </div>
+
+          <div>
+            <p className="font-semibold">Blockers / Issues</p>
+            <p className="mt-1 whitespace-pre-wrap">{record.blockers || '-'}</p>
+          </div>
+
+          <div>
+            <p className="font-semibold">Manager Remarks</p>
+            <p className="mt-1 whitespace-pre-wrap">{record.managerRemarks || '-'}</p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail }: EditTaskDialogProps) {

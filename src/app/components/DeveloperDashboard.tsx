@@ -3,7 +3,7 @@ import { Record, User } from '../types/record';
 import {
   canEditRecord,
 } from '../utils/recordUtils';
-import { CreateTaskDialog, EditTaskDialog, TaskFormData } from './TaskDialogs';
+import { CreateTaskDialog, EditTaskDialog, PreviewTaskDialog, TaskFormData } from './TaskDialogs';
 import { createTask, deleteTask, fetchTasks, updateTask } from '../services/appsScriptApi';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -236,6 +236,7 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <PreviewTaskDialog record={record} />
                             <EditTaskDialog
                               record={record}
                               onEditTask={handleEditTask}
