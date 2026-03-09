@@ -29,6 +29,8 @@ interface AdminDashboardProps {
 export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [records, setRecords] = useState<TaskRecord[]>([]);
   const [filterEmail, setFilterEmail] = useState('');
+  const [filterName, setFilterName] = useState('');
+  const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
     loadRecords().catch((error) => {
@@ -47,10 +49,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   };
 
   const handleDownloadCSV = () => {
-    const recordsToExport = filterEmail 
-      ? records.filter(r => r.assignedEmail.toLowerCase().includes(filterEmail.toLowerCase()))
-      : records;
-    downloadCSV(recordsToExport);
+    downloadCSV(filteredRecords);
   };
 
   const handleQuickRemarkUpdate = async (recordId: string, remark: string) => {
@@ -86,9 +85,12 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
     return acc;
   }, {} as { [key: string]: TaskRecord[] });
 
-  const filteredRecords = filterEmail
-    ? records.filter(r => r.assignedEmail.toLowerCase().includes(filterEmail.toLowerCase()))
-    : records;
+  const filteredRecords = records.filter((r) => {
+    const emailMatch = !filterEmail || r.assignedEmail.toLowerCase().includes(filterEmail.toLowerCase());
+    const nameMatch = !filterName || r.developerName.toLowerCase().includes(filterName.toLowerCase());
+    const dateMatch = !filterDate || toDateKey(r.date) === filterDate;
+    return emailMatch && nameMatch && dateMatch;
+  });
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -103,6 +105,17 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
     if (status >= 100) return 'text-green-600';
     if (status >= 50) return 'text-yellow-600';
     return 'text-red-600';
+  };
+
+  const toDateKey = (value: string): string => {
+    const raw = String(value || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return '';
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   };
 
   const totalTasks = records.length;
@@ -175,7 +188,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
               <CardDescription>Export Data</CardDescription>
               <Button
                 onClick={handleDownloadCSV}
-                disabled={records.length === 0}
+                disabled={filteredRecords.length === 0}
                 className="mt-2 w-full"
               >
                 <Download className="w-4 h-4 mr-2" />
@@ -194,19 +207,35 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                   View and manage all task entries across the system
                 </CardDescription>
               </div>
-              <Input
-                placeholder="Filter by email..."
-                value={filterEmail}
-                onChange={(e) => setFilterEmail(e.target.value)}
-                className="w-full sm:w-64"
-              />
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full sm:w-44"
+                />
+                <Input
+                  placeholder="Filter by name..."
+                  value={filterName}
+                  onChange={(e) => setFilterName(e.target.value)}
+                  className="w-full sm:w-52"
+                />
+                <Input
+                  placeholder="Filter by email..."
+                  value={filterEmail}
+                  onChange={(e) => setFilterEmail(e.target.value)}
+                  className="w-full sm:w-64"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
             {filteredRecords.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">
-                  {filterEmail ? 'No tasks found for this filter' : 'No tasks in the system'}
+                  {filterEmail || filterName || filterDate
+                    ? 'No tasks found for selected filters'
+                    : 'No tasks in the system'}
                 </p>
               </div>
             ) : (
