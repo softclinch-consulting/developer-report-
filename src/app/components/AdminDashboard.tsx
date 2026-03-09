@@ -305,7 +305,9 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                           </div>
                         </TableCell>
                         <TableCell className="max-w-xs">
-                          <div className="truncate text-sm">{record.morningPlannedTasks}</div>
+                          <div className="truncate text-sm" title={record.morningPlannedTasks}>
+                            {record.morningPlannedTasks}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{record.taskCategory}</Badge>
@@ -320,7 +322,9 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
                           {record.completionStatus}%
                         </TableCell>
                         <TableCell className="max-w-xs">
-                          <div className="truncate text-sm">{record.blockerOwner || '-'}</div>
+                          <div className="truncate text-sm" title={record.blockerOwner || '-'}>
+                            {record.blockerOwner || '-'}
+                          </div>
                         </TableCell>
                         <TableCell className="max-w-xs">
                           <Input

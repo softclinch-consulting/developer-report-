@@ -31,6 +31,7 @@ function getSheet() {
       "Completion",
       "Task Level",
       "Blockers",
+      "Blocker Owner",
       "Manager Remarks",
       "Created Timestamp"
     ]);
@@ -115,6 +116,28 @@ function pickValue(row, headerMap, keys, fallback) {
     }
   }
   return fallback;
+}
+
+function getColIndex(headerMap, keys) {
+  for (let i = 0; i < keys.length; i++) {
+    const idx = headerMap[normalize(keys[i])];
+    if (idx !== undefined) return idx;
+  }
+  return -1;
+}
+
+function ensureHeaderColumn(sheet, headerName) {
+  const headerMap = getHeaderIndexMap(sheet);
+  const idx = headerMap[normalize(headerName)];
+  if (idx !== undefined) return idx;
+  const newCol = sheet.getLastColumn() + 1;
+  sheet.getRange(1, newCol).setValue(headerName);
+  return newCol - 1;
+}
+
+function setByAliases(row, headerMap, aliases, value) {
+  const idx = getColIndex(headerMap, aliases);
+  if (idx >= 0) row[idx] = value;
 }
 
 /*************************************************
@@ -205,28 +228,28 @@ CREATE TASK
 function createTask(data) {
 
   const sheet = getSheet();
-  const task = data.taskData;
+  ensureHeaderColumn(sheet, "Blocker Owner");
+  const headerMap = getHeaderIndexMap(sheet);
+  const lastCol = sheet.getLastColumn();
+  const task = data.taskData || {};
 
   const id = Utilities.getUuid();
-
-  const row = [
-
-    id,
-    task.date || new Date(),
-    data.userEmail,
-    task.developerName,
-    task.plannedTasks,
-    task.category,
-    task.priority,
-    task.estimatedTime,
-    task.actualWork,
-    task.completion,
-    task.taskLevel,
-    task.blockers,
-    "",
-    new Date()
-
-  ];
+  const row = new Array(lastCol).fill("");
+  setByAliases(row, headerMap, ["id"], id);
+  setByAliases(row, headerMap, ["date", "start_date"], task.date || new Date());
+  setByAliases(row, headerMap, ["developer email", "developer_id", "assigned_by"], data.userEmail || "");
+  setByAliases(row, headerMap, ["developer name", "developer_name"], task.developerName || "");
+  setByAliases(row, headerMap, ["planned tasks", "task_title"], task.plannedTasks || "");
+  setByAliases(row, headerMap, ["category"], task.category || "Dev");
+  setByAliases(row, headerMap, ["priority"], task.priority || "Medium");
+  setByAliases(row, headerMap, ["estimated time", "estimated_hours"], task.estimatedTime || 0);
+  setByAliases(row, headerMap, ["actual work", "remarks", "actual_hours"], task.actualWork || "");
+  setByAliases(row, headerMap, ["completion", "status"], task.completion || 0);
+  setByAliases(row, headerMap, ["task level"], task.taskLevel || "Medium");
+  setByAliases(row, headerMap, ["blockers"], task.blockers || "");
+  setByAliases(row, headerMap, ["blocker owner", "blocker/error owner"], task.blockerOwner || "");
+  setByAliases(row, headerMap, ["manager remarks", "review_status"], "");
+  setByAliases(row, headerMap, ["created timestamp", "completed_date"], new Date());
 
   sheet.appendRow(row);
 
@@ -248,6 +271,7 @@ function createTask(data) {
       completion: task.completion,
       taskLevel: task.taskLevel,
       blockers: task.blockers,
+      blockerOwner: task.blockerOwner || "",
       managerRemarks: "",
       createdTimestamp: new Date()
     }
@@ -296,6 +320,7 @@ function listTasks(userEmail, userRole) {
       completion: toNumber(pickValue(row, headerMap, ["completion", "status"], 0), 0),
       taskLevel: String(pickValue(row, headerMap, ["task level", "assigned_by"], "Medium")),
       blockers: String(pickValue(row, headerMap, ["blockers"], "")),
+      blockerOwner: String(pickValue(row, headerMap, ["blocker owner", "blocker/error owner"], "")),
       managerRemarks: String(pickValue(row, headerMap, ["manager remarks", "review_status"], "")),
       createdTimestamp: pickValue(row, headerMap, ["created timestamp", "completed_date"], "")
 
@@ -315,26 +340,46 @@ UPDATE TASK
 function updateTask(data) {
 
   const sheet = getSheet();
-  const task = data.taskData;
-  const id = data.id;
+  ensureHeaderColumn(sheet, "Blocker Owner");
+  const headerMap = getHeaderIndexMap(sheet);
+  const task = data.taskData || {};
+  const id = String(data.id || "");
 
   const rows = sheet.getDataRange().getValues();
+  const idIdx = getColIndex(headerMap, ["id"]);
+  if (idIdx < 0) {
+    return {
+      success: false,
+      message: "ID column not found"
+    };
+  }
+
+  const plannedIdx = getColIndex(headerMap, ["planned tasks", "task_title"]);
+  const categoryIdx = getColIndex(headerMap, ["category"]);
+  const priorityIdx = getColIndex(headerMap, ["priority"]);
+  const estimatedIdx = getColIndex(headerMap, ["estimated time", "estimated_hours"]);
+  const actualIdx = getColIndex(headerMap, ["actual work", "remarks", "actual_hours"]);
+  const completionIdx = getColIndex(headerMap, ["completion", "status"]);
+  const taskLevelIdx = getColIndex(headerMap, ["task level"]);
+  const blockersIdx = getColIndex(headerMap, ["blockers"]);
+  const blockerOwnerIdx = getColIndex(headerMap, ["blocker owner", "blocker/error owner"]);
+  const managerIdx = getColIndex(headerMap, ["manager remarks", "review_status"]);
 
   for (let i = 1; i < rows.length; i++) {
 
-    if (rows[i][0] === id) {
+    if (String(rows[i][idIdx] || "") === id) {
 
       const row = i + 1;
-
-      sheet.getRange(row, 5).setValue(task.plannedTasks);
-      sheet.getRange(row, 6).setValue(task.category);
-      sheet.getRange(row, 7).setValue(task.priority);
-      sheet.getRange(row, 8).setValue(task.estimatedTime);
-      sheet.getRange(row, 9).setValue(task.actualWork);
-      sheet.getRange(row, 10).setValue(task.completion);
-      sheet.getRange(row, 11).setValue(task.taskLevel);
-      sheet.getRange(row, 12).setValue(task.blockers);
-      sheet.getRange(row, 13).setValue(task.managerRemarks);
+      if (plannedIdx >= 0) sheet.getRange(row, plannedIdx + 1).setValue(task.plannedTasks);
+      if (categoryIdx >= 0) sheet.getRange(row, categoryIdx + 1).setValue(task.category);
+      if (priorityIdx >= 0) sheet.getRange(row, priorityIdx + 1).setValue(task.priority);
+      if (estimatedIdx >= 0) sheet.getRange(row, estimatedIdx + 1).setValue(task.estimatedTime);
+      if (actualIdx >= 0) sheet.getRange(row, actualIdx + 1).setValue(task.actualWork);
+      if (completionIdx >= 0) sheet.getRange(row, completionIdx + 1).setValue(task.completion);
+      if (taskLevelIdx >= 0) sheet.getRange(row, taskLevelIdx + 1).setValue(task.taskLevel);
+      if (blockersIdx >= 0) sheet.getRange(row, blockersIdx + 1).setValue(task.blockers);
+      if (blockerOwnerIdx >= 0) sheet.getRange(row, blockerOwnerIdx + 1).setValue(task.blockerOwner);
+      if (managerIdx >= 0) sheet.getRange(row, managerIdx + 1).setValue(task.managerRemarks);
 
       return {
         success: true,
@@ -360,6 +405,7 @@ DELETE TASK
 
 function deleteTask(data) {
   const sheet = getSheet();
+  const headerMap = getHeaderIndexMap(sheet);
   const id = String(data.id || "");
   const userEmail = normalize(data.userEmail);
 
@@ -371,14 +417,23 @@ function deleteTask(data) {
   }
 
   const rows = sheet.getDataRange().getValues();
+  const idIdx = getColIndex(headerMap, ["id"]);
+  const ownerIdx = getColIndex(headerMap, ["developer email", "developer_id", "assigned_by"]);
+  const dateIdx = getColIndex(headerMap, ["date", "start_date"]);
+  if (idIdx < 0 || ownerIdx < 0 || dateIdx < 0) {
+    return {
+      success: false,
+      message: "Required columns are missing"
+    };
+  }
   const todayKey = formatDateKey(new Date());
   const isAdmin = userEmail === normalize(ADMIN_EMAIL);
 
   for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) !== id) continue;
+    if (String(rows[i][idIdx]) !== id) continue;
 
-    const ownerEmail = normalize(rows[i][2]);
-    const taskDateKey = formatDateKey(rows[i][1]);
+    const ownerEmail = normalize(rows[i][ownerIdx]);
+    const taskDateKey = formatDateKey(rows[i][dateIdx]);
 
     if (!isAdmin) {
       if (!userEmail || ownerEmail !== userEmail) {

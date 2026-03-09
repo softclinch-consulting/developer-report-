@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Record } from '../types/record';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -281,10 +281,26 @@ interface EditTaskDialogProps {
 }
 
 export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail }: EditTaskDialogProps) {
+  const toDateInputValue = (value: string): string => {
+    const raw = String(value || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return '';
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Record>({ ...record });
+  const [formData, setFormData] = useState<Record>({ ...record, date: toDateInputValue(record.date) });
   const isLocked = isRecordLocked(record, userEmail);
+
+  useEffect(() => {
+    if (!open) return;
+    setFormData({ ...record, date: toDateInputValue(record.date) });
+  }, [open, record]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -342,7 +358,7 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
               <Input
                 id="edit-date"
                 type="date"
-                value={formData.date}
+                value={toDateInputValue(formData.date)}
                 disabled
                 className="bg-gray-100 cursor-not-allowed"
               />

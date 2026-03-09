@@ -194,7 +194,9 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                           {new Date(record.date).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="max-w-xs">
-                          <div className="truncate">{record.morningPlannedTasks}</div>
+                          <div className="truncate" title={record.morningPlannedTasks}>
+                            {record.morningPlannedTasks}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{record.taskCategory}</Badge>
@@ -212,7 +214,9 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                           <Badge variant="secondary">{record.taskLevel}</Badge>
                         </TableCell>
                         <TableCell className="max-w-xs">
-                          <div className="truncate">{record.blockerOwner || '-'}</div>
+                          <div className="truncate" title={record.blockerOwner || '-'}>
+                            {record.blockerOwner || '-'}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
