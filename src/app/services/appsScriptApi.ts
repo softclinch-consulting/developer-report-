@@ -193,11 +193,8 @@ export const deleteTask = async (user: User, recordId: string): Promise<void> =>
     headers: {
       "Content-Type": "text/plain;charset=utf-8",
     },
-    body: JSON.stringify({
-      action: "deleteTask",
-      id: recordId,
-      userEmail: user.email,
-    }),
+    // Send url-encoded payload so Apps Script can parse action reliably after redirects.
+    body: params.toString(),
   });
 
   const parsed = await parseResponse<void>(res);
