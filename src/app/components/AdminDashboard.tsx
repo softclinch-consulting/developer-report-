@@ -27,6 +27,17 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
+  const toDateKey = (value: string): string => {
+    const raw = String(value || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return '';
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const [records, setRecords] = useState<TaskRecord[]>([]);
   const [filterEmail, setFilterEmail] = useState('');
   const [filterName, setFilterName] = useState('');
@@ -105,17 +116,6 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
     if (status >= 100) return 'text-green-600';
     if (status >= 50) return 'text-yellow-600';
     return 'text-red-600';
-  };
-
-  const toDateKey = (value: string): string => {
-    const raw = String(value || '').trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-    const dt = new Date(raw);
-    if (Number.isNaN(dt.getTime())) return '';
-    const y = dt.getFullYear();
-    const m = String(dt.getMonth() + 1).padStart(2, '0');
-    const d = String(dt.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
   };
 
   const totalTasks = records.length;
