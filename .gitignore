@@ -1,0 +1,17 @@
+node_modules/
+dist/
+
+# Local tooling caches/config
+.npm-cache/
+.gitconfig-codex
+
+# Local runtime/debug logs
+*.log
+dev.out.log
+dev.err.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
