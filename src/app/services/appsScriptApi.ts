@@ -9,15 +9,17 @@ type ApiTask = {
   developerEmail: string;
   developerName: string;
   plannedTasks: string;
-  category: "Dev" | "Research" | "Test" | "Support";
+  category: "Dev" | "Research" | "Test" | "Support" | "Internal Meeting";
   priority: "High" | "Medium" | "Low";
   estimatedTime: number;
   estimatedDays?: number;
+  workModule?: string;
   actualWork: string;
   completion: number;
   taskLevel: "Easy" | "Medium" | "Hard";
   blockers: string;
   blockerOwner?: string;
+  resolutionAction?: "" | "Resolve" | "Need Help" | "Alternative";
   managerRemarks: string;
   createdTimestamp: string;
 };
@@ -43,11 +45,13 @@ const asRecord = (task: ApiTask): TaskRecord => ({
   priority: task.priority,
   estimatedTime: Number(task.estimatedTime || 0),
   estimatedDays: Number(task.estimatedDays || 1),
+  workModule: task.workModule || "",
   actualWorkDone: task.actualWork || "",
   completionStatus: Number(task.completion || 0),
   taskLevel: task.taskLevel,
   blockers: task.blockers || "",
   blockerOwner: task.blockerOwner || "",
+  resolutionAction: task.resolutionAction || "",
   managerRemarks: task.managerRemarks || "",
   createdTimestamp: task.createdTimestamp || new Date().toISOString(),
 });
@@ -117,17 +121,20 @@ export const createTask = async (
   const task = await postAction<ApiTask>("createTask", {
     userEmail: user.email,
     taskData: {
+      date: data.date,
       developerName: user.email.split("@")[0],
       plannedTasks: data.morningPlannedTasks,
       category: data.taskCategory,
       priority: data.priority,
       estimatedTime: data.estimatedTime,
       estimatedDays: data.estimatedDays,
+      workModule: data.workModule,
       actualWork: data.actualWorkDone,
       completion: data.completionStatus,
       taskLevel: data.taskLevel,
       blockers: data.blockers,
       blockerOwner: data.blockerOwner,
+      resolutionAction: data.resolutionAction,
     },
   }, false);
   if (!task) {
@@ -142,11 +149,13 @@ export const createTask = async (
       priority: data.priority,
       estimatedTime: data.estimatedTime,
       estimatedDays: data.estimatedDays,
+      workModule: data.workModule,
       actualWorkDone: data.actualWorkDone,
       completionStatus: data.completionStatus,
       taskLevel: data.taskLevel,
       blockers: data.blockers,
       blockerOwner: data.blockerOwner,
+      resolutionAction: data.resolutionAction,
       managerRemarks: "",
       createdTimestamp: new Date().toISOString(),
     };
@@ -167,11 +176,13 @@ export const updateTask = async (
       priority: record.priority,
       estimatedTime: record.estimatedTime,
       estimatedDays: record.estimatedDays,
+      workModule: record.workModule,
       actualWork: record.actualWorkDone,
       completion: record.completionStatus,
       taskLevel: record.taskLevel,
       blockers: record.blockers,
       blockerOwner: record.blockerOwner,
+      resolutionAction: record.resolutionAction,
       managerRemarks: record.managerRemarks,
     },
   }, false);

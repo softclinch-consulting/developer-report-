@@ -23,15 +23,17 @@ interface CreateTaskDialogProps {
 export interface TaskFormData {
   date: string;
   morningPlannedTasks: string;
-  taskCategory: 'Dev' | 'Research' | 'Test' | 'Support';
+  taskCategory: 'Dev' | 'Research' | 'Test' | 'Support' | 'Internal Meeting';
   priority: 'High' | 'Medium' | 'Low';
   estimatedTime: number;
   estimatedDays: number;
+  workModule: string;
   actualWorkDone: string;
   completionStatus: number;
   taskLevel: 'Easy' | 'Medium' | 'Hard';
   blockers: string;
   blockerOwner: string;
+  resolutionAction: '' | 'Resolve' | 'Need Help' | 'Alternative';
 }
 
 export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDialogProps) {
@@ -45,11 +47,13 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
     priority: 'Medium',
     estimatedTime: 0,
     estimatedDays: 1,
+    workModule: '',
     actualWorkDone: '',
     completionStatus: 0,
     taskLevel: 'Medium',
     blockers: '',
     blockerOwner: '',
+    resolutionAction: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,11 +69,13 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
         priority: 'Medium',
         estimatedTime: 0,
         estimatedDays: 1,
+        workModule: '',
         actualWorkDone: '',
         completionStatus: 0,
         taskLevel: 'Medium',
         blockers: '',
         blockerOwner: '',
+        resolutionAction: '',
       });
       setOpen(false);
     } catch (error) {
@@ -150,6 +156,7 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
                 <option value="Research">Research</option>
                 <option value="Test">Test</option>
                 <option value="Support">Support</option>
+                <option value="Internal Meeting">Internal Meeting</option>
               </select>
             </div>
 
@@ -249,6 +256,21 @@ export function CreateTaskDialog({ onCreateTask, developerName }: CreateTaskDial
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="resolutionAction">Resolution Action</Label>
+            <select
+              id="resolutionAction"
+              value={formData.resolutionAction}
+              onChange={(e) => setFormData({ ...formData, resolutionAction: e.target.value as any })}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="">Select</option>
+              <option value="Resolve">Resolve</option>
+              <option value="Need Help">Get Help</option>
+              <option value="Alternative">Alternative</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="blockerOwner">Assigned To Resolve Blocker / Error</Label>
             <Input
               id="blockerOwner"
@@ -313,8 +335,10 @@ export function PreviewTaskDialog({ record }: PreviewTaskDialogProps) {
             <p><strong>Task Level:</strong> {record.taskLevel}</p>
             <p><strong>Estimated Time:</strong> {record.estimatedTime}h</p>
             <p><strong>Estimated Days:</strong> {record.estimatedDays}</p>
+            <p><strong>Module:</strong> {record.workModule || '-'}</p>
             <p><strong>Completion:</strong> {record.completionStatus}%</p>
             <p><strong>Blocker Owner:</strong> {record.blockerOwner || '-'}</p>
+            <p><strong>Resolution:</strong> {record.resolutionAction || '-'}</p>
           </div>
 
           <div>
@@ -464,6 +488,7 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
                 <option value="Research">Research</option>
                 <option value="Test">Test</option>
                 <option value="Support">Support</option>
+                <option value="Internal Meeting">Internal Meeting</option>
               </select>
             </div>
 
@@ -561,6 +586,18 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="edit-workModule">Work Module</Label>
+            <Input
+              id="edit-workModule"
+              value={formData.workModule || ''}
+              onChange={(e) => setFormData({ ...formData, workModule: e.target.value })}
+              placeholder="Example: Auth, Reports, Dashboard"
+              disabled={isLocked && !isAdmin}
+              className={isLocked && !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="edit-blockers">Blockers / Issues</Label>
             <Textarea
               id="edit-blockers"
@@ -570,6 +607,22 @@ export function EditTaskDialog({ record, onEditTask, canEdit, isAdmin, userEmail
               disabled={isLocked && !isAdmin}
               className={isLocked && !isAdmin ? 'bg-gray-100 cursor-not-allowed' : ''}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-resolutionAction">Resolution Action</Label>
+            <select
+              id="edit-resolutionAction"
+              value={formData.resolutionAction || ''}
+              onChange={(e) => setFormData({ ...formData, resolutionAction: e.target.value as any })}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              disabled={isLocked && !isAdmin}
+            >
+              <option value="">Select</option>
+              <option value="Resolve">Resolve</option>
+              <option value="Need Help">Get Help</option>
+              <option value="Alternative">Alternative</option>
+            </select>
           </div>
 
           <div className="space-y-2">

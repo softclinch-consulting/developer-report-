@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Record, User } from '../types/record';
 import {
   canEditRecord,
+  downloadCSV,
 } from '../utils/recordUtils';
 import { EditTaskDialog, PreviewTaskDialog, TaskFormData } from './TaskDialogs';
 import { createTask, deleteTask, fetchTasks, updateTask } from '../services/appsScriptApi';
@@ -16,9 +17,10 @@ import {
   TableRow,
 } from './ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { LogOut, CheckCircle2, Clock, Trash2, PlusSquare } from 'lucide-react';
+import { LogOut, CheckCircle2, Clock, Trash2, PlusSquare, ClipboardCheck, Download } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { MorningTaskPlannerScreen } from './MorningTaskPlannerScreen';
+import { EndOfDayUpdateScreen } from './EndOfDayUpdateScreen';
 
 interface DeveloperDashboardProps {
   user: User;
@@ -30,7 +32,8 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
   const [myRecords, setMyRecords] = useState<Record[]>([]);
   const [deletingTaskId, setDeletingTaskId] = useState('');
   const [lastSubmittedTask, setLastSubmittedTask] = useState<Record | null>(null);
-  const [activeScreen, setActiveScreen] = useState<'dashboard' | 'morning-planner'>('dashboard');
+  const [activeScreen, setActiveScreen] = useState<'dashboard' | 'morning-planner' | 'eod-update'>('dashboard');
+  const [eodInitialRecordId, setEodInitialRecordId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     loadRecords().catch((error) => {
@@ -77,6 +80,10 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
     } finally {
       setDeletingTaskId('');
     }
+  };
+
+  const handleDownloadCSV = () => {
+    downloadCSV(myRecords);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -134,35 +141,46 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
               setActiveScreen('dashboard');
             }}
           />
+        ) : activeScreen === 'eod-update' ? (
+          <EndOfDayUpdateScreen
+            records={myRecords}
+            initialRecordId={eodInitialRecordId}
+            onBack={() => {
+              setEodInitialRecordId(undefined);
+              setActiveScreen('dashboard');
+            }}
+            onUpdateTask={handleEditTask}
+          />
         ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Tasks</CardDescription>
-              <CardTitle className="text-3xl">{myRecords.length}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Completed</CardDescription>
-              <CardTitle className="text-3xl flex items-center">
-                <CheckCircle2 className="w-6 h-6 mr-2 text-green-600" />
-                {myRecords.filter(r => r.completionStatus >= 100).length}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>In Progress</CardDescription>
-              <CardTitle className="text-3xl flex items-center">
-                <Clock className="w-6 h-6 mr-2 text-yellow-600" />
-                {myRecords.filter(r => r.completionStatus < 100).length}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardDescription>Total Tasks</CardDescription>
+                  <CardTitle className="text-3xl">{myRecords.length}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardDescription>Completed</CardDescription>
+                  <CardTitle className="text-3xl flex items-center">
+                    <CheckCircle2 className="w-6 h-6 mr-2 text-green-600" />
+                    {myRecords.filter(r => r.completionStatus >= 100).length}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardDescription>In Progress</CardDescription>
+                  <CardTitle className="text-3xl flex items-center">
+                    <Clock className="w-6 h-6 mr-2 text-yellow-600" />
+                    {myRecords.filter(r => r.completionStatus < 100).length}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
 
-        <Card>
+            <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
@@ -171,10 +189,20 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                   Daily tasks assigned to {user.email}
                 </CardDescription>
               </div>
-              <Button onClick={() => setActiveScreen('morning-planner')}>
-                <PlusSquare className="w-4 h-4 mr-2" />
-                Morning Task Planner
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleDownloadCSV} disabled={myRecords.length === 0}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download CSV
+                </Button>
+                <Button variant="outline" onClick={() => setActiveScreen('eod-update')}>
+                  <ClipboardCheck className="w-4 h-4 mr-2" />
+                  EOD Update
+                </Button>
+                <Button onClick={() => setActiveScreen('morning-planner')}>
+                  <PlusSquare className="w-4 h-4 mr-2" />
+                  Morning Task Planner
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -257,6 +285,18 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
                               userEmail={user.email}
                             />
                             <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEodInitialRecordId(record.id);
+                                setActiveScreen('eod-update');
+                              }}
+                              disabled={!canEditRecord(record, user.email, false)}
+                            >
+                              <ClipboardCheck className="w-3 h-3 mr-1" />
+                              EOD
+                            </Button>
+                            <Button
                               variant="destructive"
                               size="sm"
                               onClick={() => handleDeleteTask(record)}
@@ -275,7 +315,7 @@ export function DeveloperDashboard({ user, onLogout }: DeveloperDashboardProps) 
             )}
           </CardContent>
         </Card>
-        </>
+          </div>
         )}
       </div>
     </div>

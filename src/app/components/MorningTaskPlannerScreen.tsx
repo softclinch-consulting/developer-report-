@@ -24,11 +24,13 @@ export function MorningTaskPlannerScreen({ developerName, onCreateTask, onBack }
     priority: 'Medium',
     estimatedTime: 0,
     estimatedDays: 1,
+    workModule: '',
     actualWorkDone: '',
     completionStatus: 0,
     taskLevel: 'Medium',
     blockers: '',
     blockerOwner: '',
+    resolutionAction: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,11 +73,11 @@ export function MorningTaskPlannerScreen({ developerName, onCreateTask, onBack }
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
           <CardHeader>
             <CardTitle>Plan</CardTitle>
-            <CardDescription>Write what you will work on today.</CardDescription>
+            <CardDescription>Write what you will work on today (EOD details will be filled separately).</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -114,138 +116,12 @@ export function MorningTaskPlannerScreen({ developerName, onCreateTask, onBack }
                 onChange={(e) => setFormData({ ...formData, morningPlannedTasks: e.target.value })}
                 placeholder={"Example:\n- Fix login redirect bug\n- Review PR #123\n- Investigate flaky tests"}
                 rows={6}
+                className="min-h-[180px] resize-y"
                 required
               />
               <p className="text-xs text-gray-500">
                 Tip: Use one task per line (bullets work best).
               </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-            <CardDescription>Estimate and classify the work.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="planner-taskCategory">Task Category *</Label>
-              <select
-                id="planner-taskCategory"
-                value={formData.taskCategory}
-                onChange={(e) => setFormData({ ...formData, taskCategory: e.target.value as any })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                required
-              >
-                <option value="Dev">Dev</option>
-                <option value="Research">Research</option>
-                <option value="Test">Test</option>
-                <option value="Support">Support</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planner-priority">Priority *</Label>
-              <select
-                id="planner-priority"
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                required
-              >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="space-y-2">
-                <Label htmlFor="planner-estimatedTime">Estimated Time (Hours) *</Label>
-                <Input
-                  id="planner-estimatedTime"
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={formData.estimatedTime}
-                  onChange={(e) => setFormData({ ...formData, estimatedTime: parseFloat(e.target.value) || 0 })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="planner-estimatedDays">Estimated Days *</Label>
-                <Input
-                  id="planner-estimatedDays"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={formData.estimatedDays}
-                  onChange={(e) => setFormData({ ...formData, estimatedDays: parseInt(e.target.value, 10) || 1 })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planner-taskLevel">Task Level *</Label>
-              <select
-                id="planner-taskLevel"
-                value={formData.taskLevel}
-                onChange={(e) => setFormData({ ...formData, taskLevel: e.target.value as any })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                required
-              >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planner-actualWorkDone">Actual Work Done (EOD) *</Label>
-              <Textarea
-                id="planner-actualWorkDone"
-                value={formData.actualWorkDone}
-                onChange={(e) => setFormData({ ...formData, actualWorkDone: e.target.value })}
-                placeholder="Update this at end-of-day."
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planner-completionStatus">Completion Status (%) *</Label>
-              <Input
-                id="planner-completionStatus"
-                type="number"
-                min="0"
-                max="100"
-                value={formData.completionStatus}
-                onChange={(e) => setFormData({ ...formData, completionStatus: parseInt(e.target.value) || 0 })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planner-blockers">Blockers / Issues</Label>
-              <Textarea
-                id="planner-blockers"
-                value={formData.blockers}
-                onChange={(e) => setFormData({ ...formData, blockers: e.target.value })}
-                placeholder="Anything blocking you?"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="planner-blockerOwner">Assigned To Resolve Blocker / Error</Label>
-              <Input
-                id="planner-blockerOwner"
-                value={formData.blockerOwner}
-                onChange={(e) => setFormData({ ...formData, blockerOwner: e.target.value })}
-                placeholder="Assignee name or email"
-              />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -253,7 +129,7 @@ export function MorningTaskPlannerScreen({ developerName, onCreateTask, onBack }
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Submit Task'}
+                {isSubmitting ? 'Saving...' : 'Submit Morning Plan'}
               </Button>
             </div>
           </CardContent>

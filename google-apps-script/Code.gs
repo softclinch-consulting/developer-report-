@@ -229,6 +229,9 @@ function createTask(data) {
 
   const sheet = getSheet();
   ensureHeaderColumn(sheet, "Blocker Owner");
+  ensureHeaderColumn(sheet, "Resolution Action");
+  ensureHeaderColumn(sheet, "Estimated Days");
+  ensureHeaderColumn(sheet, "Work Module");
   const headerMap = getHeaderIndexMap(sheet);
   const lastCol = sheet.getLastColumn();
   const task = data.taskData || {};
@@ -243,11 +246,14 @@ function createTask(data) {
   setByAliases(row, headerMap, ["category"], task.category || "Dev");
   setByAliases(row, headerMap, ["priority"], task.priority || "Medium");
   setByAliases(row, headerMap, ["estimated time", "estimated_hours"], task.estimatedTime || 0);
+  setByAliases(row, headerMap, ["estimated days", "est days", "estimated_days"], task.estimatedDays || 1);
+  setByAliases(row, headerMap, ["work module", "module", "component", "area"], task.workModule || "");
   setByAliases(row, headerMap, ["actual work", "remarks", "actual_hours"], task.actualWork || "");
   setByAliases(row, headerMap, ["completion", "status"], task.completion || 0);
   setByAliases(row, headerMap, ["task level"], task.taskLevel || "Medium");
   setByAliases(row, headerMap, ["blockers"], task.blockers || "");
   setByAliases(row, headerMap, ["blocker owner", "blocker/error owner"], task.blockerOwner || "");
+  setByAliases(row, headerMap, ["resolution action", "resolution", "resolution plan", "next action"], task.resolutionAction || "");
   setByAliases(row, headerMap, ["manager remarks", "review_status"], "");
   setByAliases(row, headerMap, ["created timestamp", "completed_date"], new Date());
 
@@ -267,11 +273,14 @@ function createTask(data) {
       category: task.category,
       priority: task.priority,
       estimatedTime: task.estimatedTime,
+      estimatedDays: task.estimatedDays,
+      workModule: task.workModule,
       actualWork: task.actualWork,
       completion: task.completion,
       taskLevel: task.taskLevel,
       blockers: task.blockers,
       blockerOwner: task.blockerOwner || "",
+      resolutionAction: task.resolutionAction || "",
       managerRemarks: "",
       createdTimestamp: new Date()
     }
@@ -316,11 +325,14 @@ function listTasks(userEmail, userRole) {
       category: String(pickValue(row, headerMap, ["category", "task_description"], "Dev")),
       priority: String(pickValue(row, headerMap, ["priority"], "Medium")),
       estimatedTime: toNumber(pickValue(row, headerMap, ["estimated time", "estimated_hours"], 0), 0),
+      estimatedDays: toNumber(pickValue(row, headerMap, ["estimated days", "est days", "estimated_days"], 1), 1),
+      workModule: String(pickValue(row, headerMap, ["work module", "module", "component", "area"], "")),
       actualWork: String(pickValue(row, headerMap, ["actual work", "remarks", "actual_hours"], "")),
       completion: toNumber(pickValue(row, headerMap, ["completion", "status"], 0), 0),
       taskLevel: String(pickValue(row, headerMap, ["task level", "assigned_by"], "Medium")),
       blockers: String(pickValue(row, headerMap, ["blockers"], "")),
       blockerOwner: String(pickValue(row, headerMap, ["blocker owner", "blocker/error owner"], "")),
+      resolutionAction: String(pickValue(row, headerMap, ["resolution action", "resolution", "resolution plan", "next action"], "")),
       managerRemarks: String(pickValue(row, headerMap, ["manager remarks", "review_status"], "")),
       createdTimestamp: pickValue(row, headerMap, ["created timestamp", "completed_date"], "")
 
@@ -341,6 +353,9 @@ function updateTask(data) {
 
   const sheet = getSheet();
   ensureHeaderColumn(sheet, "Blocker Owner");
+  ensureHeaderColumn(sheet, "Resolution Action");
+  ensureHeaderColumn(sheet, "Estimated Days");
+  ensureHeaderColumn(sheet, "Work Module");
   const headerMap = getHeaderIndexMap(sheet);
   const task = data.taskData || {};
   const id = String(data.id || "");
@@ -358,11 +373,14 @@ function updateTask(data) {
   const categoryIdx = getColIndex(headerMap, ["category"]);
   const priorityIdx = getColIndex(headerMap, ["priority"]);
   const estimatedIdx = getColIndex(headerMap, ["estimated time", "estimated_hours"]);
+  const estimatedDaysIdx = getColIndex(headerMap, ["estimated days", "est days", "estimated_days"]);
+  const moduleIdx = getColIndex(headerMap, ["work module", "module", "component", "area"]);
   const actualIdx = getColIndex(headerMap, ["actual work", "remarks", "actual_hours"]);
   const completionIdx = getColIndex(headerMap, ["completion", "status"]);
   const taskLevelIdx = getColIndex(headerMap, ["task level"]);
   const blockersIdx = getColIndex(headerMap, ["blockers"]);
   const blockerOwnerIdx = getColIndex(headerMap, ["blocker owner", "blocker/error owner"]);
+  const resolutionIdx = getColIndex(headerMap, ["resolution action", "resolution", "resolution plan", "next action"]);
   const managerIdx = getColIndex(headerMap, ["manager remarks", "review_status"]);
 
   for (let i = 1; i < rows.length; i++) {
@@ -374,11 +392,14 @@ function updateTask(data) {
       if (categoryIdx >= 0) sheet.getRange(row, categoryIdx + 1).setValue(task.category);
       if (priorityIdx >= 0) sheet.getRange(row, priorityIdx + 1).setValue(task.priority);
       if (estimatedIdx >= 0) sheet.getRange(row, estimatedIdx + 1).setValue(task.estimatedTime);
+      if (estimatedDaysIdx >= 0) sheet.getRange(row, estimatedDaysIdx + 1).setValue(task.estimatedDays);
+      if (moduleIdx >= 0) sheet.getRange(row, moduleIdx + 1).setValue(task.workModule);
       if (actualIdx >= 0) sheet.getRange(row, actualIdx + 1).setValue(task.actualWork);
       if (completionIdx >= 0) sheet.getRange(row, completionIdx + 1).setValue(task.completion);
       if (taskLevelIdx >= 0) sheet.getRange(row, taskLevelIdx + 1).setValue(task.taskLevel);
       if (blockersIdx >= 0) sheet.getRange(row, blockersIdx + 1).setValue(task.blockers);
       if (blockerOwnerIdx >= 0) sheet.getRange(row, blockerOwnerIdx + 1).setValue(task.blockerOwner);
+      if (resolutionIdx >= 0) sheet.getRange(row, resolutionIdx + 1).setValue(task.resolutionAction);
       if (managerIdx >= 0) sheet.getRange(row, managerIdx + 1).setValue(task.managerRemarks);
 
       return {

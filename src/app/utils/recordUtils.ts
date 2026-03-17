@@ -66,15 +66,17 @@ export const createRecord = (
   data: {
     date: string;
     morningPlannedTasks: string;
-    taskCategory: 'Dev' | 'Research' | 'Test' | 'Support';
+    taskCategory: 'Dev' | 'Research' | 'Test' | 'Support' | 'Internal Meeting';
     priority: 'High' | 'Medium' | 'Low';
     estimatedTime: number;
     estimatedDays: number;
+    workModule: string;
     actualWorkDone: string;
     completionStatus: number;
     taskLevel: 'Easy' | 'Medium' | 'Hard';
     blockers: string;
     blockerOwner: string;
+    resolutionAction: '' | 'Resolve' | 'Need Help' | 'Alternative';
   }
 ): Record => {
   return {
@@ -129,11 +131,13 @@ export const exportToCSV = (records: Record[]): string => {
     'Priority',
     'Estimated Time (Hours)',
     'Estimated Days',
+    'Work Module',
     'Actual Work Done (EOD)',
     'Completion Status (%)',
     'Task Level',
     'Blockers / Issues',
     'Blocker/Error Owner',
+    'Resolution Action',
     'Manager Remarks',
     'Assigned Email',
     'Created Timestamp'
@@ -147,11 +151,13 @@ export const exportToCSV = (records: Record[]): string => {
     record.priority,
     record.estimatedTime.toString(),
     record.estimatedDays.toString(),
+    record.workModule || '',
     record.actualWorkDone,
     record.completionStatus.toString(),
     record.taskLevel,
     record.blockers,
     record.blockerOwner,
+    record.resolutionAction || '',
     record.managerRemarks,
     record.assignedEmail,
     new Date(record.createdTimestamp).toLocaleString(),
